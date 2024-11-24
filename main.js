@@ -1,3 +1,4 @@
+const { program } = require("commander");
 const express = require("express");
 const bodyParser = require("body-parser");
 const swaggerUi = require("swagger-ui-express");
@@ -10,6 +11,18 @@ app.use(bodyParser.raw({ type: "text/plain" }));
 
 // Підключення Swagger UI
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+const multer = require("multer");
+const upload = multer();
+
+program
+  .requiredOption("-h, --host <host>", "server host")
+  .requiredOption("-p, --port <port>", "server port")
+  .requiredOption("-c, --cache <path>", "cache directory path");
+
+program.parse(process.argv);
+
+const { host, port, cache } = program.opts();
 
 let notes = {};
 
@@ -55,7 +68,7 @@ app.get("/notes", (req, res) => {
   res.json(notesList);
 });
 
-app.post("/write", (req, res) => {
+app.post("/write", upload.none(), (req, res) => {
   const note = req.body.note_name;
   const text = req.body.note;
   if (notes[note]) {
