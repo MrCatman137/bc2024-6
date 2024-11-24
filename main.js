@@ -21,7 +21,6 @@ const { host, port, cache } = program.opts();
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  console.log("Done!");
   res.send("Yepi");
 });
 
@@ -84,7 +83,6 @@ app.post("/write", upload.none(), (req, res) => {
 app.get("/UploadForm.html", (req, res) => {
   res.sendFile(path.join(__dirname, "UploadForm.html"));
 });
-
 const server = http.createServer(app);
 
 server.listen(3030, "0.0.0.0", () => {

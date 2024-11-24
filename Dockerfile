@@ -35,4 +35,4 @@ COPY . .
 EXPOSE 3030
 
 # Run the application.
-CMD node main.js --host 0.0.0.0 -p 3030 -c cache
+CMD npx nodemon -L --inspect=0.0.0.0 main.js --host localhost -p 3030 -c cache
