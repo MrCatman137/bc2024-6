@@ -1,13 +1,52 @@
-const doc = {
-  info: {
-    title: "Notes API",
-    description: "API for managing notes",
-    version: "1.0.0",
+const { program } = require("commander");
+const http = require("http");
+const path = require("path");
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
+
+const app = express();
+
+const multer = require("multer");
+const upload = multer();
+
+program
+  .requiredOption("-h, --host <host>", "server host")
+  .requiredOption("-p, --port <port>", "server port")
+  .requiredOption("-c, --cache <path>", "cache directory path");
+
+program.parse(process.argv);
+
+const { host, port, cache } = program.opts();
+
+app.use(express.json());
+
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Notes API",
+      version: "1.0.0",
+      description: "API for managing notes",
+    },
   },
-  host: `${host}:${port}`,
-  schemes: ["http"],
+  apis: [__filename], // Link to the file with annotations
 };
 
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Check if the server is running
+ *     responses:
+ *       200:
+ *         description: Returns a confirmation message
+ */
 app.get("/", (req, res) => {
   res.send("Yepi");
 });
@@ -38,6 +77,8 @@ app.get("/notes/:note", (req, res) => {
     res.status(404).send("Not found");
   }
 });
+
+app.use(bodyParser.raw({ type: "text/plain" }));
 
 /**
  * @swagger
@@ -154,4 +195,10 @@ app.post("/write", upload.none(), (req, res) => {
     notes[note] = text;
     res.status(201).send("Note created");
   }
+});
+
+const server = http.createServer(app);
+
+server.listen(3030, "0.0.0.0", () => {
+  console.log(`Server running: http://${host}:${port}`);
 });
