@@ -1,30 +1,21 @@
-const { program } = require("commander");
-const http = require("http");
-const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger_output.json"); // Підключення згенерованої документації
 
 const app = express();
 
-const multer = require("multer");
-const upload = multer();
-
-program
-  .requiredOption("-h, --host <host>", "server host")
-  .requiredOption("-p, --port <port>", "server port")
-  .requiredOption("-c, --cache <path>", "cache directory path");
-
-program.parse(process.argv);
-
-const { host, port, cache } = program.opts();
-
 app.use(express.json());
+app.use(bodyParser.raw({ type: "text/plain" }));
+
+// Підключення Swagger UI
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+let notes = {};
 
 app.get("/", (req, res) => {
   res.send("Yepi");
 });
-
-let notes = {};
 
 app.get("/notes/:note", (req, res) => {
   const note = req.params.note;
@@ -34,11 +25,6 @@ app.get("/notes/:note", (req, res) => {
     res.status(404).send("Not found");
   }
 });
-
-//app.use(express.text());
-//app.use(bodyParser.raw());
-
-app.use(bodyParser.raw({ type: "text/plain" }));
 
 app.put("/notes/:note", (req, res) => {
   const note = req.params.note;
@@ -69,7 +55,7 @@ app.get("/notes", (req, res) => {
   res.json(notesList);
 });
 
-app.post("/write", upload.none(), (req, res) => {
+app.post("/write", (req, res) => {
   const note = req.body.note_name;
   const text = req.body.note;
   if (notes[note]) {
@@ -80,11 +66,6 @@ app.post("/write", upload.none(), (req, res) => {
   }
 });
 
-app.get("/UploadForm.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "UploadForm.html"));
-});
-const server = http.createServer(app);
-
-server.listen(3030, "0.0.0.0", () => {
-  console.log(`Server running: http://${host}:${port}`);
+app.listen(3030, () => {
+  console.log("Server running at http://localhost:3030");
 });
